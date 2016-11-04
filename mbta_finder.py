@@ -10,6 +10,7 @@ https://sites.google.com/site/sd15spring/home/project-toolbox/geocoding-and-web-
 import urllib   # urlencode function
 import urllib2  # urlopen function (better than urllib version)
 import json
+from pprint import pprint
 
 
 # Useful URLs (you need to add the appropriate parameters for your requests)
@@ -25,7 +26,11 @@ def get_json(url):
     Given a properly formatted URL for a JSON web API request, return
     a Python JSON object containing the response to that request.
     """
-    pass
+    f = urllib2.urlopen(url)
+    response_text = f.read()
+    response_data = json.loads(response_text)
+    #pprint(response_data)
+    return response_data
 
 
 def get_lat_long(place_name):
@@ -36,7 +41,11 @@ def get_lat_long(place_name):
     See https://developers.google.com/maps/documentation/geocoding/
     for Google Maps Geocode API URL formatting requirements.
     """
-    pass
+    url = get_map_url(place_name)
+    url_info = get_json(place_url)
+    lat = url_info["results"][0]["geometry"]["location"]["lat"]
+    lon = url_info["results"][0]["geometry"]["location"]["lng"]
+    return (lat,lon)
 
 
 def get_nearest_station(latitude, longitude):
@@ -47,13 +56,22 @@ def get_nearest_station(latitude, longitude):
     See http://realtime.mbta.com/Portal/Home/Documents for URL
     formatting requirements for the 'stopsbylocation' API.
     """
-    pass
+    para = [('api_key', MBTA_DEMO_API_KEY),('lon',longitude) ('lat',latitude), ('format','json')]
+    new_url=MBTA_BASE_URL+ '?' + urllib.urlencode(para)
+    response=get_json(new_url)
+    stop= response['stop'][0]
+    name= stop['distance']
+    return (name,distance)
 
 
 def find_stop_near(place_name):
     """
-    Given a place name or address, print the nearest MBTA stop and the 
+    Given a place name or address, print the nearest MBTA stop and the
     distance from the given place to that stop.
     """
-    pass
+    try:
+        return get_nearest_station(*get_lat_long(place_name))
+    except:
+        print "Too far!"    
 
+print find_stop_near("Babson College, Wellesley,MA")
